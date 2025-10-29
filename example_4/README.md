@@ -16,14 +16,28 @@ mkdir public routes
 
 ### Database commands
 
+Connect to the psql prompt as superuser: 
+
 ```bash
-createdb registration_login
-psql -d registration_login -f schema.sql
+sudo -u postgres psql
+```
+
+Create the DB and User;
+
+```sql
+CREATE ROLE student LOGIN PASSWORD 'student';
+CREATE DATABASE registration_login OWNER student;
+GRANT ALL PRIVILEGES ON DATABASE registration_login TO student;
+
+```
+
+Logout and log back in as the new user, connect to the DB, and then create the table.
+
+```sh
+psql -U student -d registration_login -h localhost
 ```
 
 ```sql
-CREATE DATABASE registration_login;
-\c registration_login
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	username VARCHAR(255) UNIQUE NOT NULL,
