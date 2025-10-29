@@ -1,0 +1,13 @@
+{
+  "name": "example_1",
+  "version": "1.0.0",
+  "description": "Express Example 1 - basic text response",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^5.0.0"
+  }
+}

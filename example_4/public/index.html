@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Registration and Login</title>
+  <style>
+    body { font-family: sans-serif; max-width: 540px; margin: 2rem auto; }
+    form { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1.5rem; border-radius: 0.5rem; }
+    label { display: block; margin-bottom: 0.5rem; }
+    input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Registration and Login</h1>
+
+  <form action="/users/register" method="post">
+    <h2>Create Account</h2>
+    <label>
+      Username
+      <input name="username" required />
+    </label>
+    <label>
+      Password
+      <input name="password" type="password" required />
+    </label>
+    <button type="submit">Register</button>
+  </form>
+
+  <form action="/users/login" method="post">
+    <h2>Log In</h2>
+    <label>
+      Username
+      <input name="username" required />
+    </label>
+    <label>
+      Password
+      <input name="password" type="password" required />
+    </label>
+    <button type="submit">Log In</button>
+  </form>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "example_5",
+  "version": "1.0.0",
+  "description": "Express Example 5 - JWT-protected routes",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "express": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}

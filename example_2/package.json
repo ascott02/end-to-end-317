@@ -1,0 +1,13 @@
+{
+  "name": "example_2",
+  "version": "1.0.0",
+  "description": "Express Example 2 - reading query parameters",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^5.0.0"
+  }
+}
