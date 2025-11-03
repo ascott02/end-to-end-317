@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>JWT Auth Demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 720px; line-height: 1.5; padding: 0 1rem; }
+    h1, h2 { margin-bottom: 0.5rem; }
+    section { border: 1px solid #ccc; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; }
+    form { display: grid; gap: 0.75rem; }
+    label { display: grid; gap: 0.5rem; }
+    input { padding: 0.6rem; font-size: 1rem; border: 1px solid #bbb; border-radius: 0.35rem; }
+    button { padding: 0.6rem 1rem; font-size: 1rem; border-radius: 0.35rem; border: 1px solid #888; background: #f4f4f4; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status { min-height: 1.25rem; font-weight: 600; }
+    .status.error { color: #b00020; }
+    .status.success { color: #006400; }
+    pre { background: #f9f9f9; border-radius: 0.5rem; padding: 0.75rem; overflow-x: auto; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #121212; color: #f1f1f1; }
+      section { border-color: #333; }
+      input { background: #1f1f1f; border-color: #555; color: inherit; }
+      button { background: #2a2a2a; border-color: #444; color: inherit; }
+      pre { background: #1b1b1b; }
+    }
+  </style>
+</head>
+<body>
+  <h1>JWT Authentication Playground</h1>
+
+  <section>
+    <h2>Create Account</h2>
+    <form id="register-form" autocomplete="off">
+      <label>
+        Username
+        <input name="username" required />
+      </label>
+      <label>
+        Password
+        <input name="password" type="password" required />
+      </label>
+      <button type="submit">Register</button>
+      <div id="register-status" class="status" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Log In</h2>
+    <form id="login-form" autocomplete="off">
+      <label>
+        Username
+        <input name="username" required />
+      </label>
+      <label>
+        Password
+        <input name="password" type="password" required />
+      </label>
+      <button type="submit">Log In</button>
+      <div id="login-status" class="status" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Stored Token</h2>
+    <p>The most recent login response is saved in <code>localStorage</code> under <code>jwtToken</code>.</p>
+    <pre id="token-status">No token saved yet.</pre>
+    <button id="clear-token" type="button">Clear Saved Token</button>
+  </section>
+
+  <section>
+    <h2>Profile Lookup</h2>
+    <p>Send the token to the protected <code>/auth/profile</code> endpoint.</p>
+    <button id="profile-btn" type="button">Fetch Profile</button>
+    <pre id="profile-output">Profile response will appear here.</pre>
+  </section>
+
+  <script>
+    const TOKEN_KEY = 'jwtToken';
+    const registerForm = document.getElementById('register-form');
+    const loginForm = document.getElementById('login-form');
+    const registerStatus = document.getElementById('register-status');
+    const loginStatus = document.getElementById('login-status');
+    const tokenStatus = document.getElementById('token-status');
+    const clearTokenBtn = document.getElementById('clear-token');
+    const profileBtn = document.getElementById('profile-btn');
+    const profileOutput = document.getElementById('profile-output');
+
+    function setStatus(element, message, type = 'success') {
+      element.textContent = message;
+      element.classList.remove('success', 'error');
+      element.classList.add('status', type);
+    }
+
+    function getStoredToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function updateTokenUI() {
+      const token = getStoredToken();
+      tokenStatus.textContent = token ? token : 'No token saved yet.';
+    }
+
+    async function handleFormSubmit(event, endpoint, statusElement, onSuccess) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          setStatus(statusElement, data.message ?? 'Request completed.');
+          form.reset();
+          if (onSuccess) {
+            onSuccess(data);
+          }
+        } else {
+          const errorMessage = data.error ?? 'Request failed.';
+          setStatus(statusElement, errorMessage, 'error');
+        }
+      } catch (error) {
+        setStatus(statusElement, `Network error: ${error.message}`, 'error');
+      }
+    }
+
+    registerForm.addEventListener('submit', (event) => {
+      handleFormSubmit(event, '/auth/register', registerStatus);
+    });
+
+    loginForm.addEventListener('submit', (event) => {
+      handleFormSubmit(event, '/auth/login', loginStatus, (data) => {
+        if (data.token) {
+          localStorage.setItem(TOKEN_KEY, data.token);
+          updateTokenUI();
+          setStatus(loginStatus, 'Login successful. Token saved.');
+        } else {
+          setStatus(loginStatus, 'Login response did not include a token.', 'error');
+        }
+      });
+    });
+
+    profileBtn.addEventListener('click', async () => {
+      const token = getStoredToken();
+      if (!token) {
+        profileOutput.textContent = 'No stored token. Log in first.';
+        return;
+      }
+
+      try {
+        const response = await fetch('/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        const formatted = JSON.stringify(data, null, 2);
+        profileOutput.textContent = formatted;
+      } catch (error) {
+        profileOutput.textContent = `Network error: ${error.message}`;
+      }
+    });
+
+    clearTokenBtn.addEventListener('click', () => {
+      localStorage.removeItem(TOKEN_KEY);
+      updateTokenUI();
+      profileOutput.textContent = 'Profile response will appear here.';
+      setStatus(loginStatus, 'Token cleared. Log in again to fetch a new one.', 'error');
+    });
+
+    updateTokenUI();
+  </script>
+</body>
+</html>
